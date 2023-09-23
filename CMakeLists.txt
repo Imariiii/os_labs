@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(OS_LABS C CXX)
+project(os_labs C CXX)
 
 enable_testing()
 
