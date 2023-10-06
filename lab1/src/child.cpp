@@ -8,7 +8,9 @@ int main() {
     while (std::getline(std::cin, line)) {
         std::istringstream iss(line);
         double dividend;
-        iss >> dividend;
+        if(!(iss >> dividend)) {
+            dividend = 0;
+        }
         double divisor;
         while (iss >> divisor) {
             dividend /= divisor;

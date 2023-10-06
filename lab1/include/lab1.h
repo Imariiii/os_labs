@@ -1,10 +1,5 @@
-#ifndef LAB1_H
-#define LAB1_H
-
+#pragma once
 #include <iostream>
-
-#define FILTER_LEN (11U)
-#define MODE (0644U)
 
 enum PipeEnd {
     READ_END,
@@ -12,5 +7,3 @@ enum PipeEnd {
 };
 
 void ParentRoutine(const char* pathToChild, std::istream& streamIn, std::ostream& streamOut);
-
-#endif  // LAB1_H

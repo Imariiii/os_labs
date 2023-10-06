@@ -14,7 +14,7 @@ void ParentRoutine(const char* pathToChild, std::istream& streamIn, std::ostream
     std::string filename;
     streamIn >> filename;
 
-    int file = open(filename.c_str(), O_RDONLY, MODE);
+    int file = open(filename.c_str(), O_RDONLY);
     if (file == -1) {
         perror("open");
         exit(EXIT_FAILURE);

@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/lab1_test.dir/lab1_test.cpp.o CMakeFiles/lab1_test.dir/__/lab1/src/lab1.cpp.o -o lab1_test  ../lib/libgtest_main.a ../lib/libgtest.a 
