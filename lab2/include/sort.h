@@ -12,6 +12,8 @@ class ParallelSort {
         std::vector<ll>* vec;
         std::size_t left;
         std::size_t right;
+        unsigned int id;
+        std::size_t numsPerThread;
     };
 
     static void* QuickSort(void* ptr);
