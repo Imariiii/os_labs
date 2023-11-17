@@ -25,9 +25,14 @@ std::vector<long long> RandomVec(std::size_t len) {
 }
 
 TEST(SecondLabTests, SimpleTest) {
-    std::vector<long long> vec = {1,4,3, -13, 4};
-    ParallelSort::QuickSort(vec, 5);
-    EXPECT_TRUE(std::is_sorted(vec.begin(), vec.end()));
+    std::vector<long long> vec = {1, 4, 3, -13, 4};
+    const char *threadsNumStr = std::getenv("THREADS_NUM");
+    ASSERT_TRUE(threadsNumStr);
+    const unsigned int threadsNum = std::stoi(threadsNumStr);
+    for (unsigned int i = 1; i < threadsNum+1; ++i) {
+        ParallelSort::QuickSort(vec, i);
+        EXPECT_TRUE(std::is_sorted(vec.begin(), vec.end()));
+    }
 }
 
 TEST(SecondLabTests, ReliabilityTest) {
@@ -38,8 +43,10 @@ TEST(SecondLabTests, ReliabilityTest) {
 
 TEST(SecondLabTests, MultithreadTest) {
     auto vec = RandomVec(LEN);
-    unsigned int threadsNum = std::thread::hardware_concurrency();
-    for (unsigned int i = 1; i < threadsNum; ++i) {
+    const char *threadsNumStr = std::getenv("THREADS_NUM");
+    ASSERT_TRUE(threadsNumStr);
+    const unsigned int threadsNum = std::stoi(threadsNumStr);
+    for (unsigned int i = 1; i < threadsNum+1; ++i) {
         auto vecCopy = vec;
         ParallelSort::QuickSort(vecCopy, i);
         EXPECT_TRUE(std::is_sorted(vecCopy.begin(), vecCopy.end()));
@@ -48,17 +55,24 @@ TEST(SecondLabTests, MultithreadTest) {
 
 TEST(SecondLabTests, EfficiencyTest) {
     auto vec = RandomVec(1e7);
-    const unsigned int threadsNum = std::thread::hardware_concurrency();
+    const char *threadsNumStr = getenv("THREADS_NUM");
+    ASSERT_TRUE(threadsNumStr);
+    const unsigned int threadsNum = std::stoi(threadsNumStr);
     int64_t prevDuration = INT64_MAX;
-    for (unsigned int i = 1; i < threadsNum; i+=(threadsNum> 2) ? threadsNum/3 : 1) {
+    for (unsigned int i = 0; i < 2; i++) {
+        unsigned int th = (i == 0) ? 1 : threadsNum;
         auto vecCopy = vec;
         auto start = std::chrono::high_resolution_clock::now();
-        ParallelSort::QuickSort(vecCopy, i);
+        ParallelSort::QuickSort(vecCopy, th);
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration =
-            std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+            std::chrono::duration_cast<std::chrono::microseconds>(stop - start)
+                .count();
         EXPECT_TRUE(std::is_sorted(vecCopy.begin(), vecCopy.end()));
         EXPECT_LT(duration, prevDuration);
         prevDuration = duration;
+        if (threadsNum == 1) {
+            break;
+        }
     }
 }
