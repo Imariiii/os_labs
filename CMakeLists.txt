@@ -13,5 +13,6 @@ endif()
 include(FindThreads)
 
 add_subdirectory(lab1)
+add_subdirectory(cp)
 
 add_subdirectory(tests)
