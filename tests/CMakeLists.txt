@@ -18,5 +18,11 @@ add_executable(lab2_test lab2_test.cpp ../lab2/include/sort.h ../lab2/src/sort.c
 target_link_libraries(lab2_test PRIVATE GTest::GTest)
 target_include_directories(lab2_test PRIVATE ../lab2/include)
 
+add_executable(lab5_7_test lab5_7_test.cpp ../lab5_7/include/topology.h ../lab5_7/include/node.h ../lab5_7/include/socket.h
+../lab5_7/src/client_util.cpp)
+target_link_libraries(lab5_7_test GTest::gtest GTest::gtest_main zmq zmqsocket zmqnode)
+target_include_directories(lab5_7_test PRIVATE ../lab5_7/include)
+add_test(lab5_7_test lab5_7_test)
+
 add_test(lab1_test lab1_test)
 add_test(lab2_test lab2_test)
