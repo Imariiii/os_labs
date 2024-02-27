@@ -1,6 +1,9 @@
-add_executable(main
+add_executable(
+               cp
                main.cpp 
-               include/mck-k.h include/pow_of_two_allocator.h src/mck-k.cpp src/pow_of_two_allocator.cpp
+               include/pow_allocator.h src/pow_allocator.c 
+               include/mck_allocator.h src/mck_allocator.c 
                )
-
-target_include_directories(main PRIVATE include)
+               
+target_include_directories(cp PRIVATE include)
+target_link_libraries(cp m)

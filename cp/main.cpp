@@ -1,72 +1,92 @@
-#include <iostream>
+
+#include <unistd.h>
+
 #include <chrono>
+#include <cstdlib>
+#include <iostream>
+#include <vector>
 
-#include "pow_of_two_allocator.h"
-#include "mck-k.h"
+extern "C" {
+#include "mck_allocator.h"
+#include "pow_allocator.h"
+}
+size_t page_size = sysconf(_SC_PAGESIZE);
 
-int main(){
-    using namespace std::chrono;
-    
-    std::vector<int> blocksAmount = {64, 32, 16, 4, 20, 10, 0};
+static void benchmark(struct MCKAllocator* MCKAlloctor, std::size_t size,
+                      std::size_t n) {
+    PowInit();
+    MCKInit(MCKAlloctor);
+    std::vector<void*> list_blocks;
+    std::vector<void*> MKC_blocks;
 
-    steady_clock::time_point pow2AllocatorInitStart = steady_clock::now();
-    TPow2Allocator pow2Allocator(blocksAmount);
-    steady_clock::time_point pow2AllocatorInitEnd = steady_clock::now();
+    std::cout << "Comparing PowAllocator and MCKAllocator" << std::endl;
 
-    std::cout << "Powers-of-2 allocator initialization: " << 
-    std::chrono::duration_cast<std::chrono::nanoseconds>(pow2AllocatorInitEnd - pow2AllocatorInitStart).count() << " ns" << std::endl;
-    std::cout << std::endl;
-
-    
-    int pagesAmount = 10;
-    std::vector<int> pagesFragments = {32, 128, 256, 1024, 512, 256, 256, 1024, 16, 256};
-
-    steady_clock::time_point mcKKAllocatorInitStart = steady_clock::now();
-    McKKAllocator mcKKAllocator(pagesAmount, pagesFragments);
-    steady_clock::time_point mcKKAllocatorInitEnd = steady_clock::now();
-
-    std::cout << "McKusick-Karels allocator initialization: " << 
-        std::chrono::duration_cast<std::chrono::nanoseconds>(mcKKAllocatorInitEnd - mcKKAllocatorInitStart).count() << " ns" << std::endl;
-
-    std::cout << std::endl;
-
-    
-    std::cout << "Test: Allocate 10 char[256], DeAllocate 5 of them, Allocate 5 char[128]:\n";
-    
-    std::vector<char*> pointers1(10, 0);
-    steady_clock::time_point pow2TestStart = steady_clock::now();
-    for (int i = 0; i < 10; ++i){
-        pointers1[i] = (char*)pow2Allocator.Allocate(256);
+    std::cout << "Block allocation rate of " << n << " chunks of " << size
+              << " bytes" << std::endl;
+    auto start_time = std::chrono::steady_clock::now();
+    for (size_t i = 0; i != n; ++i) {
+        void* block = PowAlloc(size);
+        list_blocks.push_back(block);
     }
-    for (int i = 5; i < 10; ++i){
-        pow2Allocator.DeAllocate(pointers1[i]);
+    auto end_time = std::chrono::steady_clock::now();
+    std::cout << "Time of alloc PowAllocator: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     end_time - start_time)
+                     .count()
+              << " milliseconds" << std::endl;
+
+    start_time = std::chrono::steady_clock::now();
+    for (size_t i = 0; i != n; ++i) {
+        void* block = MCKAlloc(MCKAlloctor, size);
+        MKC_blocks.push_back(block);
     }
-    for (int i = 5; i < 10; ++i){
-        pointers1[i] = (char*)pow2Allocator.Allocate(128);
+    end_time = std::chrono::steady_clock::now();
+    std::cout << "Time of alloc MCKAllocator: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     end_time - start_time)
+                     .count()
+              << " milliseconds" << std::endl;
+
+    std::cout << "Block free rate" << std::endl;
+    start_time = std::chrono::steady_clock::now();
+    for (size_t i = 0; i != list_blocks.size(); ++i) {
+        PowFree(list_blocks[i]);
     }
-    steady_clock::time_point pow2TestEnd = steady_clock::now();
-    std::cerr << "Powers-of-2 allocator test:" << 
-        std::chrono::duration_cast<std::chrono::microseconds>(pow2TestEnd - pow2TestStart).count() << " microseconds" << std::endl;
-    for (int i = 0; i < 10; ++i){
-        pow2Allocator.DeAllocate(pointers1[i]);
+    end_time = std::chrono::steady_clock::now();
+    std::cout << "Time of free PowAllocator: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     end_time - start_time)
+                     .count()
+              << " milliseconds" << std::endl;
+
+    start_time = std::chrono::steady_clock::now();
+    for (size_t i = 0; i != MKC_blocks.size(); ++i) {
+        MCKFree(MCKAlloctor, MKC_blocks[i]);
     }
-    
-    std::vector<char*> pointers2(10, 0);
-    steady_clock::time_point mcKKTest1Start = steady_clock::now();
-    for (int i = 0; i < 10; ++i){
-        pointers2[i] = (char*)mcKKAllocator.Allocate(256);
-    }
-    for (int i = 5; i < 10; ++i){
-        mcKKAllocator.DeAllocate(pointers2[i]);
-    }
-    for (int i = 5; i < 10; ++i){
-        pointers2[i] = (char*)mcKKAllocator.Allocate(128);
-    }
-    steady_clock::time_point mcKKTest1End = steady_clock::now();
-    std::cerr << "McKusick-Karels allocator test:" << 
-        std::chrono::duration_cast<std::chrono::microseconds>(mcKKTest1End - mcKKTest1Start).count() << " microseconds" << std::endl;
-    for (int i = 0; i < 10; ++i){
-        mcKKAllocator.DeAllocate(pointers2[i]);
-    }
-    
+    end_time = std::chrono::steady_clock::now();
+
+    std::cout << "Time of free MCKAllocator: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     end_time - start_time)
+                     .count()
+              << " milliseconds" << std::endl;
+}
+
+int main() {
+    MCKAllocator a;
+
+    for (size_t i = 0; i < 10; ++i)
+    benchmark(&a, 100*(i+1), 70000);
+
+    /* for (size_t i = 0; i < 10; ++i)
+    benchmark(&a, 1000*(i+1), 70000); */
+
+   /*  for (size_t i = 0; i < 12; ++i)
+    benchmark(&a, 10000*(i+1), 70000); */
+
+    std::cout << "-----------------------";
+    for (size_t i = 0; i < 5; ++i)
+    benchmark(&a, 1000, 10000*(i+1));
+
+
 }
