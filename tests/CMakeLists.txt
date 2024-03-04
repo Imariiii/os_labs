@@ -30,9 +30,14 @@ add_executable(lab4_lib2_test lab4_lib2_test.cpp ../lab4/include/lib.h ../lab4/i
 target_link_libraries(lab4_lib2_test GTest::gtest GTest::gtest_main lib2_static)
 target_include_directories(lab4_lib2_test PRIVATE ../lab4/include)
 
+add_executable(lab5_7_test lab5_7_test.cpp ../lab5_7/include/topology.h ../lab5_7/include/node.h ../lab5_7/include/socket.h
+../lab5_7/src/client_util.cpp)
+target_link_libraries(lab5_7_test GTest::gtest GTest::gtest_main zmq zmqsocket zmqnode)
+target_include_directories(lab5_7_test PRIVATE ../lab5_7/include)
+
 add_test(lab1_test lab1_test)
 add_test(lab2_test lab2_test)
 add_test(lab3_test lab3_test)
 add_test(lab4_lib1_test lab4_lib1_test)
 add_test(lab4_lib2_test lab4_lib2_test)
-
+add_test(lab5_7_test lab5_7_test)
